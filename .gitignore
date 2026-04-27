@@ -1,7 +1,84 @@
+# Dependencies
 node_modules/
+.pnpm-store/
 
-.turbo/
-
+# Build outputs
 dist/
+build/
+.taro/
+*.tsbuildinfo
 
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Go
+server/bin/
+server/tmp/
+server/data/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.db
+valley-server-linux
+
+# Test
+coverage/
+.nyc_output/
+
+# Misc
+*.tgz
+.cache/
+.turbo
+
+# Unity generated caches
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+UserSettings/
+MemoryCaptures/
+Recordings/
+
+# Build outputs
+[Bb]uild/
+[Bb]uilds/
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Crash and local diagnostics
+sysinfo.txt
+*.stacktrace
