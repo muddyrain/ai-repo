@@ -1,0 +1,10 @@
+services:
+  api:
+    volumes:
+      - ../../:/app
+    command: ["bun", "run", "--cwd", "services/api", "dev"]
+
+  web:
+    volumes:
+      - ../../:/app
+    command: ["bun", "run", "--cwd", "clients/web", "dev", "--", "-p", "3000"]
