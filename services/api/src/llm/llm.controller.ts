@@ -1,11 +1,14 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import { LlmService } from './llm.service';
 import type { Response } from 'express';
-
+import { RequirementService } from './requirement.service';
 
 @Controller('api/langchain')
 export class LlmController {
-  constructor(private readonly llmService: LlmService) { }
+  constructor(
+    private readonly llmService: LlmService,
+    private readonly requirementService: RequirementService,
+  ) { }
 
   @Post('invoke')
   async invoke(@Body() body: { input: string }) {
@@ -66,6 +69,11 @@ export class LlmController {
 
   @Post('chain-batch')
   async chainBatch(@Body() body: { inputs: string[] }) {
-    return this.llmService.chainBatch(body.inputs); 
+    return this.llmService.chainBatch(body.inputs);
+  }
+
+  @Post('structured')
+  async structured(@Body() body: { input: string }) {
+    return this.requirementService.extract(body.input);
   }
 }
