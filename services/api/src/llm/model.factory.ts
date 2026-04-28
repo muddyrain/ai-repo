@@ -3,17 +3,16 @@ import { getApiKeys, loadLangChainConfig } from '../config/load-langchain-config
 
 export function createChatModel() {
   const config = loadLangChainConfig();
-  const apiKeys = getApiKeys();
+  const keys = getApiKeys();
 
   return new ChatOpenAI({
     model: config.llm.model,
     temperature: config.llm.temperature,
     maxTokens: config.llm.maxTokens,
-    apiKey: apiKeys.openaiApiKey,
-    configuration: apiKeys.openaiBaseUrl
-      ? {
-          baseURL: apiKeys.openaiBaseUrl,
-        }
+    useResponsesApi: true,
+    openAIApiKey: keys.openaiApiKey,
+    configuration: keys.openaiBaseUrl
+      ? { baseURL: keys.openaiBaseUrl }
       : undefined,
   });
 }

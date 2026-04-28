@@ -7,19 +7,22 @@ const USER_INPUT = '用户注册时必须绑定手机号，密码至少8位';
 
 @Injectable()
 export class LlmService {
+  private model = createChatModel();
   async invoke() {
-    const model = createChatModel();
-    const result = await model.invoke(this.buildMessages());
-
-    return {
-      input: USER_INPUT,
-      message: this.readContent(result.content),
-    };
+    try {
+      const result = await this.model.invoke(this.buildMessages());
+      return {
+        input: USER_INPUT,
+        message: this.readContent(result.content),
+      };
+    } catch (err) {
+      console.error('LLM invoke error:', err);
+      throw err;
+    }
   }
 
   async *stream(): AsyncGenerator<string> {
-    const model = createChatModel();
-    const stream = await model.stream(this.buildMessages());
+    const stream = await this.model.stream(this.buildMessages());
 
     for await (const chunk of stream) {
       const text = this.readContent(chunk.content);
@@ -30,9 +33,8 @@ export class LlmService {
   }
 
   async batch() {
-    const model = createChatModel();
     const requests = [this.buildMessages(), this.buildMessages()];
-    const results = await model.batch(requests);
+    const results = await this.model.batch(requests);
 
     return {
       input: USER_INPUT,

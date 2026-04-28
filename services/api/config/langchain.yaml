@@ -1,6 +1,6 @@
 llm:
   provider: openai
-  model: gpt-5.4
+  model: gpt-5.2
   temperature: 0
   maxTokens: 800
 

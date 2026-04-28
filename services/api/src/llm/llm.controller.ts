@@ -3,7 +3,7 @@ import { LlmService } from './llm.service';
 
 @Controller('api/langchain')
 export class LlmController {
-  private readonly llmService = new LlmService();
+  constructor(private readonly llmService: LlmService) { }
 
   @Post('invoke')
   async invoke() {
