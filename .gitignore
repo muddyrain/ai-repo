@@ -82,3 +82,5 @@ Recordings/
 # Crash and local diagnostics
 sysinfo.txt
 *.stacktrace
+
+.claude/worktrees
