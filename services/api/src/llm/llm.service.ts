@@ -1,73 +1,50 @@
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { Injectable } from '@nestjs/common';
+import { requirementPrompt } from './requirement.prompt-builder';
 import { createChatModel } from './model.factory';
-
-const SYSTEM_ROLE = '需求结构化抽取助手';
-const USER_INPUT = '用户注册时必须绑定手机号，密码至少8位';
+import { BaseMessage } from 'langchain';
 
 @Injectable()
 export class LlmService {
   private model = createChatModel();
-  async invoke() {
-    try {
-      const result = await this.model.invoke(this.buildMessages());
-      return {
-        input: USER_INPUT,
-        message: this.readContent(result.content),
-      };
-    } catch (err) {
-      console.error('LLM invoke error:', err);
-      throw err;
-    }
+
+  async invoke(input: string) {
+    const systemMessage = new SystemMessage('你是一名需求结构化抽取助手');
+    const humanMessage = new HumanMessage(
+      `请从下面文本中抽取 action、constraints、entities：\n${input}`
+    );
+    const messages: BaseMessage[] = [systemMessage, humanMessage];
+    const response = await this.model.invoke(messages);
+    return response.content.toString();
   }
 
-  async *stream(): AsyncGenerator<string> {
-    const stream = await this.model.stream(this.buildMessages());
-
-    for await (const chunk of stream) {
-      const text = this.readContent(chunk.content);
-      if (text) {
-        yield text;
-      }
-    }
+  async streamDemo(input: string) {
+    return this.model.stream([
+      new SystemMessage('你是一名需求结构化抽取助手'),
+      new HumanMessage(`请逐步分析并输出结构化抽取结果：\n${input}`),
+    ]);
   }
 
-  async batch() {
-    const requests = [this.buildMessages(), this.buildMessages()];
-    const results = await this.model.batch(requests);
+  async batch(inputs: string[]) {
+    const messageGroups = inputs.map((input) => [
+      new SystemMessage('你是一名需求结构化抽取助手'),
+      new HumanMessage(`请抽取 action、constraints、entities：\n${input}`),
+    ]);
 
-    return {
-      input: USER_INPUT,
-      messages: results.map((item) => this.readContent(item.content)),
-    };
+    const responses = await this.model.batch(messageGroups);
+    return responses.map((item) => item.content.toString());
   }
 
-  private buildMessages() {
-    return [new SystemMessage(SYSTEM_ROLE), new HumanMessage(USER_INPUT)];
+  async promptPreview(input: string) {
+    const promptValue = await requirementPrompt.invoke({ input });
+    return { rendered: promptValue.toString() };
   }
 
-  private readContent(content: unknown): string {
-    if (typeof content === 'string') {
-      return content;
-    }
-
-    if (!Array.isArray(content)) {
-      return '';
-    }
-
-    return content
-      .map((part) => {
-        if (typeof part === 'string') {
-          return part;
-        }
-
-        if (part && typeof part === 'object' && 'text' in part) {
-          const text = (part as { text?: unknown }).text;
-          return typeof text === 'string' ? text : '';
-        }
-
-        return '';
-      })
-      .join('');
+  async promptToModel(input: string) {
+    const messages = await requirementPrompt.formatMessages({
+      input,
+    });
+    const response = await this.model.invoke(messages);
+    return { result: response.content };
   }
 }
