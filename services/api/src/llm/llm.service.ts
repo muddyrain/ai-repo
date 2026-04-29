@@ -20,6 +20,7 @@ export class LlmService {
     );
     const messages: BaseMessage[] = [systemMessage, humanMessage];
     const response = await this.model.invoke(messages);
+    console.log("response", response);
     return response.content.toString();
   }
 
@@ -88,7 +89,7 @@ export class LlmService {
   async toolLoop(input: string) {
     const tools = [checkConstraintValidityTool, lookupEntityDefinitionTool];
     const toolMap = new Map<string, any>(tools.map((t) => [t.name, t]));
-    const modelWithTools = this.model.bindTools(tools); 
+    const modelWithTools = this.model.bindTools(tools);
 
     const messages: BaseMessage[] = [
       new SystemMessage('你可以调用工具来帮助完成需求抽取后的校验。'),

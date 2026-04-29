@@ -9,10 +9,9 @@ export function createChatModel() {
     model: config.llm.model,
     temperature: config.llm.temperature,
     maxTokens: config.llm.maxTokens,
-    useResponsesApi: true,
     openAIApiKey: keys.openaiApiKey,
     configuration: keys.openaiBaseUrl
-      ? { baseURL: keys.openaiBaseUrl }
+      ? { baseURL: keys.openaiBaseUrl } 
       : undefined,
   });
 }

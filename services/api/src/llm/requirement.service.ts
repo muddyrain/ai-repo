@@ -18,7 +18,10 @@ export class RequirementService {
 
   async extract(input: string): Promise<RequirementResult> {
     const messages = await this.prompt.formatMessages({ input });
-    const structuredModel = this.model.withStructuredOutput(RequirementResultSchema);
+    const structuredModel = this.model.withStructuredOutput(
+      RequirementResultSchema
+    );
+    console.log("structuredModel",structuredModel);
     return structuredModel.invoke(messages);
   }
 }
