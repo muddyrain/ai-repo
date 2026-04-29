@@ -1,0 +1,10 @@
+{
+  "orderId": "EC20240315001",
+  "productId": "BTE-ANC-001",
+  "productName": "蓝牙降噪耳机",
+  "status": "delivered",
+  "paidAt": "2024-03-15T10:20:00+08:00",
+  "deliveredAt": "2024-03-17T15:30:00+08:00",
+  "returnWindowDays": 7,
+  "issue": "降噪效果不好"
+}

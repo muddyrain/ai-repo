@@ -118,13 +118,13 @@ export default function Home() {
             </div>
 
             <form className="flex flex-1 flex-col gap-5 p-5" onSubmit={handleSubmit}>
-              <label className="grid flex-1 gap-3">
+              <label className="grid gap-3">
                 <span className="text-sm font-medium text-[#37423b]">原始需求</span>
                 <textarea
-                  rows={10}
+                  rows={5}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  className="min-h-56 w-full resize-none rounded-lg border border-[#cfd6cd] bg-[#fbfcf8] px-4 py-3 text-base leading-7 text-[#17201b] outline-none transition focus:border-[#0f766e] focus:bg-white focus:ring-4 focus:ring-[#0f766e]/10"
+                  className="min-h-30 w-full resize-none rounded-lg border border-[#cfd6cd] bg-[#fbfcf8] px-4 py-3 text-base leading-7 text-[#17201b] outline-none transition focus:border-[#0f766e] focus:bg-white focus:ring-4 focus:ring-[#0f766e]/10"
                 />
               </label>
 
