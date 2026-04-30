@@ -11,8 +11,10 @@ import { EmbeddingService } from './embedding/embedding.service';
 import { VectorStoreService } from './embedding/vector-store.service';
 import { AgentsController } from './agents/agents.controller';
 import { OrchestratorService } from './agents/orchestrator.service';
+import { AdvancedModule } from './advanced.module';
 
 @Module({
+  imports: [AdvancedModule],
   controllers: [
     LlmController,
     MemoryController,

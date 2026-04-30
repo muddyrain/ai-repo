@@ -31,7 +31,7 @@ export class FilesystemService {
       new HumanMessage(input),
     ];
 
-    for (let i = 0; i < this.maxToolIterations; i += 1) {
+    for (let i = 0;i < this.maxToolIterations;i += 1) {
       const response = await modelWithTools.invoke(messages);
       messages.push(response);
 
@@ -58,5 +58,14 @@ export class FilesystemService {
 
     const finalResponse = await modelWithTools.invoke(messages);
     return { result: finalResponse.content.toString() };
+  }
+
+  async writeFile(path: string, content?: string ) {
+    const fullPath = `workspace/${path}`;
+    await this.tools.find((tool) => tool.name === 'write_file')?.invoke({
+      path: fullPath,
+      content: content ?? '',
+    });
+    return { success: true, path };
   }
 }
