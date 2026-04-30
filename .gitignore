@@ -48,6 +48,7 @@ coverage/
 *.tgz
 .cache/
 .turbo
+.bun-cache/
 
 # Unity generated caches
 [Ll]ibrary/

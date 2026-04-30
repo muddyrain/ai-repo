@@ -1,17 +1,35 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import path, { dirname, } from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import fs from 'node:fs';
 
-const WORKSPACE_ROOT = path.join(process.cwd(), 'workspace');
+const WORKSPACE_ROOT = resolve(process.cwd(), 'workspace');
 
-function safePath(filePath: string) {
-  const resolved = path.resolve(WORKSPACE_ROOT, filePath);
-  if (!resolved.startsWith(WORKSPACE_ROOT)) {
-    throw new Error('路径不允许逃逸工作目录');
+function safePath(relativePath: string) {
+  if (relativePath.includes('\0')) {
+    throw new Error('Invalid workspace path');
   }
-  return resolved;
+
+  if (isAbsolute(relativePath)) {
+    throw new Error('Only relative workspace paths are allowed');
+  }
+
+  const normalizedPath = normalize(relativePath);
+  const absolutePath = resolve(WORKSPACE_ROOT, normalizedPath);
+  const workspacePrefix = `${WORKSPACE_ROOT}${sep}`;
+
+  if (
+    absolutePath !== WORKSPACE_ROOT &&
+    !absolutePath.startsWith(workspacePrefix)
+  ) {
+    throw new Error('Path escapes workspace sandbox');
+  }
+
+  return absolutePath;
+}
+
+async function readWorkspaceFile(relativePath: string) {
+  return readFile(safePath(relativePath), 'utf8');
 }
 
 async function writeWorkspaceFile(relativePath: string, content: string) {
@@ -28,62 +46,64 @@ async function writeWorkspaceFile(relativePath: string, content: string) {
 
 export const queryOrderTool = tool(
   async ({ orderId }: { orderId: string }) => {
-    const full = safePath(`orders/${orderId}.json`);
-    if (!fs.existsSync(full)) return { error: `订单 ${orderId} 不存在` };
-    return JSON.parse(fs.readFileSync(full, 'utf8'));
+    const content = await readWorkspaceFile(`orders/${orderId}.json`);
+    return JSON.parse(content);
   },
   {
     name: 'query_order',
-    description: '根据订单号查询订单详情、商品、收货时间和状态',
+    description: '根据订单号读取 workspace/orders/{orderId}.json 的订单详情',
     schema: z.object({
-      orderId: z.string().describe('订单号，例如 EC20240315001'),
+      orderId: z.string().min(1).describe('订单号，例如 EC20240315001'),
     }),
   },
 );
 
 export const queryProductTool = tool(
   async ({ productId }: { productId: string }) => {
-    const full = safePath(`products/${productId}.json`);
-    if (!fs.existsSync(full)) return { error: `商品 ${productId} 不存在` };
-    return JSON.parse(fs.readFileSync(full, 'utf8'));
+    const content = await readWorkspaceFile(`products/${productId}.json`);
+    return JSON.parse(content);
   },
   {
     name: 'query_product',
-    description: '根据商品 ID 查询参数、保修和售后信息',
+    description: '根据商品 ID 读取 workspace/products/{productId}.json 的商品详情',
     schema: z.object({
-      productId: z.string().describe('商品 ID，例如 headphone-x1'),
+      productId: z.string().min(1).describe('商品 ID'),
     }),
   },
 );
 
 export const readFileTool = tool(
-  async ({ filePath }: { filePath: string }) => {
-    const full = safePath(filePath);
-    if (!fs.existsSync(full)) return { error: '文件不存在' };
-    return { content: fs.readFileSync(full, 'utf8') };
+  async ({ path }: { path: string }) => {
+    return {
+      path,
+      content: await readWorkspaceFile(path),
+    };
   },
   {
     name: 'read_file',
-    description: '读取政策、FAQ 或其他业务文件',
+    description: '读取 workspace/ 下指定相对路径的文件内容，例如政策、FAQ 等',
     schema: z.object({
-      filePath: z.string().describe('相对于 workspace 的文件路径'),
+      path: z
+        .string()
+        .min(1)
+        .describe('workspace 内的相对路径，不带 workspace/ 前缀'),
     }),
   },
 );
 
 export const writeFileTool = tool(
-  async ({ filePath, content }: { filePath: string; content: string }) => {
-    const full = safePath(filePath);
-    fs.mkdirSync(path.dirname(full), { recursive: true });
-    fs.writeFileSync(full, content, 'utf8');
-    return { success: true, path: filePath };
+  async ({ path, content }: { path: string; content: string }) => {
+    return writeWorkspaceFile(path, content);
   },
   {
     name: 'write_file',
-    description: '写入工单、售后报告或日报',
+    description: '将内容写入 workspace/ 下指定相对路径，例如工单、报告',
     schema: z.object({
-      filePath: z.string().describe('相对于 workspace 的文件路径'),
-      content: z.string().describe('要写入的内容'),
+      path: z
+        .string()
+        .min(1)
+        .describe('workspace 内的相对路径，不带 workspace/ 前缀'),
+      content: z.string().describe('要写入文件的内容'),
     }),
   },
 );

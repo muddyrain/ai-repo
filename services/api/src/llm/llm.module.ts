@@ -6,20 +6,32 @@ import { MemoryController } from './memory/memory.controller';
 import { RunnableMemoryService } from './memory/runnable-memory.service';
 import { FilesystemController } from './filesystem/filesystem.controller';
 import { FilesystemService } from './filesystem/filesystem.service';
+import { EmbeddingController } from './embedding/embedding.controller';
+import { EmbeddingService } from './embedding/embedding.service';
+import { VectorStoreService } from './embedding/vector-store.service';
 
 @Module({
-  controllers: [LlmController, MemoryController, FilesystemController],
+  controllers: [
+    LlmController,
+    MemoryController,
+    FilesystemController,
+    EmbeddingController,
+  ],
   providers: [
     LlmService,
     RequirementService,
     RunnableMemoryService,
     FilesystemService,
+    EmbeddingService,
+    VectorStoreService,
   ],
   exports: [
     LlmService,
     RequirementService,
     RunnableMemoryService,
     FilesystemService,
+    EmbeddingService,
+    VectorStoreService,
   ],
 })
 export class LlmModule {}

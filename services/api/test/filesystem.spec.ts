@@ -1,3 +1,5 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { AIMessage } from '@langchain/core/messages';
 import { FilesystemService } from '../src/llm/filesystem/filesystem.service';
 import {
@@ -7,6 +9,11 @@ import {
 } from '../src/llm/tools/business.tools';
 
 const invokeMock = jest.fn();
+const ticketPath = resolve(
+  process.cwd(),
+  'workspace/tickets/EC20240315001-analysis.md',
+);
+let originalTicketContent = '';
 
 jest.mock('../src/llm/model.factory', () => ({
   createChatModel: () => ({
@@ -15,6 +22,14 @@ jest.mock('../src/llm/model.factory', () => ({
     }),
   }),
 }));
+
+beforeAll(async () => {
+  originalTicketContent = await readFile(ticketPath, 'utf8');
+});
+
+afterEach(async () => {
+  await writeFile(ticketPath, originalTicketContent, 'utf8');
+});
 
 describe('business tools', () => {
   it('should query order and read policy from workspace', async () => {
