@@ -9,6 +9,8 @@ import { FilesystemService } from './filesystem/filesystem.service';
 import { EmbeddingController } from './embedding/embedding.controller';
 import { EmbeddingService } from './embedding/embedding.service';
 import { VectorStoreService } from './embedding/vector-store.service';
+import { AgentsController } from './agents/agents.controller';
+import { OrchestratorService } from './agents/orchestrator.service';
 
 @Module({
   controllers: [
@@ -16,6 +18,7 @@ import { VectorStoreService } from './embedding/vector-store.service';
     MemoryController,
     FilesystemController,
     EmbeddingController,
+    AgentsController,
   ],
   providers: [
     LlmService,
@@ -24,6 +27,7 @@ import { VectorStoreService } from './embedding/vector-store.service';
     FilesystemService,
     EmbeddingService,
     VectorStoreService,
+    OrchestratorService,
   ],
   exports: [
     LlmService,
@@ -32,6 +36,7 @@ import { VectorStoreService } from './embedding/vector-store.service';
     FilesystemService,
     EmbeddingService,
     VectorStoreService,
+    OrchestratorService,
   ],
 })
 export class LlmModule {}

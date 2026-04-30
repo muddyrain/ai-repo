@@ -26,7 +26,7 @@ describe('VectorStoreService', () => {
     expect(refundResults[0].metadata).toMatchObject({
       source: 'policies/refund-policy.md',
     });
-    expect(refundResults[0].content).toContain('原支付渠道');
+    expect(refundResults[0].pageContent).toContain('原支付渠道');
   });
 
   it('should add custom documents to MemoryVectorStore', async () => {
@@ -46,6 +46,6 @@ describe('VectorStoreService', () => {
     expect(results[0].metadata).toMatchObject({
       source: 'tickets/EC20240315001-analysis.md',
     });
-    expect(results[0].content).toContain('EC20240315001');
+    expect(results[0].pageContent).toContain('EC20240315001');
   });
 });
