@@ -11,7 +11,7 @@ export function createChatModel() {
     maxTokens: config.llm.maxTokens,
     openAIApiKey: keys.openaiApiKey,
     configuration: keys.openaiBaseUrl
-      ? { baseURL: keys.openaiBaseUrl } 
+      ? { baseURL: keys.openaiBaseUrl }
       : undefined,
   });
 }

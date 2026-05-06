@@ -16,7 +16,7 @@
     - package.json name=@repo/web，依赖引用 "@repo/contracts":"workspace:*"
     - next.config.ts 必须设置 transpilePackages=["@repo/contracts"], output="standalone", outputFileTracingRoot
     - app/page.tsx 显示 "Hello from ${APP_NAME}"
-4. services/api（Nest）：
+4. services/chat（Nest）：
     - 初始化 Nest
     - package.json name=@repo/api，依赖引用 "@repo/contracts":"workspace:*"
     - 监听端口 3001
