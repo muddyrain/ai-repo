@@ -10,16 +10,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MessageService } from './message.service';
 import { ConversationService } from './conversation.service';
+import type { AuthenticatedRequest } from 'src/auth/type';
 
-type AuthenticatedRequest = Request & {
-  user: {
-    userId: string;
-  };
-};
+
 
 type CreateConversationBody = {
   title?: string;
