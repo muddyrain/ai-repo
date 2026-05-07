@@ -1,7 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import {  getUploadDir, getUploadUserPrefix } from './utils';
 
 const ALLOWED_MIME_TYPES = [
   'text/plain',
@@ -24,13 +25,11 @@ function resolveAllowedMimeType(file: Express.Multer.File) {
   return MIME_TYPE_BY_EXTENSION[path.extname(file.originalname).toLowerCase()] ?? null;
 }
 
-function getUploadDir() {
-  return path.join(process.cwd(), 'uploads');
-}
+
 
 @Injectable()
 export class DocumentService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async upload(userId: string, file: Express.Multer.File) {
     const resolvedMimeType = resolveAllowedMimeType(file);
@@ -46,7 +45,7 @@ export class DocumentService {
     }
 
     // 存储
-    const userDir = path.join(getUploadDir(), userId);
+    const userDir = getUploadUserPrefix(userId);
     fs.mkdirSync(userDir, { recursive: true });
 
     const filename = `${Date.now()}-${file.originalname}`;
@@ -72,5 +71,32 @@ export class DocumentService {
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { chunks: true } } },
     });
+  }
+
+  async findById(documentId: string, userId: string) {
+    const doc = await this.prisma.document.findUnique({
+      where: { id: documentId },
+      include: { chunks: { orderBy: { chunkIndex: 'asc' } } },
+    });
+    if (!doc) throw new NotFoundException('文档不存在');
+    if (doc.userId !== userId) throw new ForbiddenException('无权访问该文档');
+    return doc;
+  }
+
+  async delete(documentId: string, userId: string) {
+    const doc = await this.prisma.document.findUnique({
+      where: { id: documentId },
+    });
+    if (!doc) throw new NotFoundException('文档不存在');
+    if (doc.userId !== userId) throw new ForbiddenException('无权访问该文档');
+
+    if (doc.filename) {
+      try {
+        fs.unlinkSync(path.join(getUploadDir(), doc.filename));
+      } catch {
+        // file already gone — ignore
+      }
+    }
+    await this.prisma.document.delete({ where: { id: documentId } });
   }
 }
