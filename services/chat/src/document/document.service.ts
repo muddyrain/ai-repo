@@ -32,6 +32,10 @@ export class DocumentService {
   constructor(private prisma: PrismaService) { }
 
   async upload(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('file is required');
+    }
+
     const resolvedMimeType = resolveAllowedMimeType(file);
 
     // 校验

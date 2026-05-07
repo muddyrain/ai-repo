@@ -8,6 +8,7 @@ type SimilaritySearchResult = {
   content: string;
   metadata: Prisma.JsonValue | null;
   score: number;
+  originalName: string;
 };
 
 @Injectable()
@@ -25,6 +26,7 @@ export class SearchService {
       SELECT
         dc."content" AS "content",
         dc."metadata" AS "metadata",
+        d."originalName" AS "originalName",
         1 - (dc."embedding" <=> ${JSON.stringify(queryVector)}::vector) AS "score"
       FROM "DocumentChunk" dc
       INNER JOIN "Document" d ON d."id" = dc."documentId"

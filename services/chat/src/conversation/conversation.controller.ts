@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdvancedAnalysisService } from '../llm/advanced-analysis.service';
 import { MessageService } from './message.service';
 import { ConversationService } from './conversation.service';
 import type { AuthenticatedRequest } from 'src/auth/type';
@@ -31,6 +32,7 @@ export class ConversationController {
   constructor(
     private readonly conversationService: ConversationService,
     private readonly messageService: MessageService,
+    private readonly advancedAnalysisService: AdvancedAnalysisService,
   ) {}
 
   @Post()
@@ -64,11 +66,21 @@ export class ConversationController {
     @Body() body: ChatBody,
   ) {
     const input = this.requireString(body?.input, 'input');
-    const reply = await this.conversationService.chat(id, req.user.userId, input);
+    await this.conversationService.findById(id, req.user.userId);
+    const analysis = await this.advancedAnalysisService.analyze(
+      req.user.userId,
+      id,
+      input,
+    );
 
+    console.log("analysis",analysis);
     return {
       conversationId: id,
-      reply,
+      report: analysis.report,
+      status: analysis.status,
+      clarificationQuestions: analysis.clarificationQuestions ?? [],
+      usedAgents: analysis.usedAgents,
+      retrievedDocuments: analysis.retrievedDocuments,
     };
   }
 
