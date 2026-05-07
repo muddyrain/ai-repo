@@ -12,6 +12,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/type';
+import { EmbeddingService } from '../embedding/embedding.service';
 import { ChunkService } from './chunk.service';
 import { DocumentService } from './document.service';
 
@@ -21,7 +22,8 @@ export class DocumentController {
   constructor(
     private readonly documentService: DocumentService,
     private readonly chunkService: ChunkService,
-  ) { }
+    private readonly embeddingService: EmbeddingService,
+  ) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -54,11 +56,10 @@ export class DocumentController {
 
   @Post(':id/process')
   async process(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    const userId = (req.user).userId;
+    const userId = req.user.userId;
     await this.documentService.findById(id, userId);
-    this.chunkService.chunkDocument(id).catch((err) => {
-      console.error(`[DocumentProcess] documentId=${id} failed:`, err);
-    });
-    return { message: '处理已开始', documentId: id };
+    await this.chunkService.chunkDocument(id);
+    await this.embeddingService.embedChunks(id);
+    return { message: '处理已完成', documentId: id };
   }
 }
