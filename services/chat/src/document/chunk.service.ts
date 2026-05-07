@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmbeddingService } from '../embedding/embedding.service';
+import { SseService } from '../sse/sse.service';
 import { parseFile } from './parsers/parser.factory';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
@@ -17,7 +19,11 @@ export class ChunkService {
     chunkOverlap: 50,
   });
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly embeddingService: EmbeddingService,
+    private readonly sseService: SseService,
+  ) { }
 
   async chunkDocument(documentId: string) {
     const doc = await this.prisma.document.findUniqueOrThrow({
@@ -74,6 +80,45 @@ export class ChunkService {
       await this.prisma.document.update({
         where: { id: documentId },
         data: { status: 'failed' },
+      });
+      throw error;
+    }
+  }
+
+  async processDocument(userId: string, documentId: string) {
+    this.sseService.emit(userId, {
+      id: randomUUID(),
+      taskType: 'document_vectorize',
+      taskId: documentId,
+      status: 'processing',
+      message: '文档正在解析和向量化...',
+      createdAt: new Date().toISOString(),
+    });
+
+    try {
+      const { chunkCount } = await this.chunkDocument(documentId);
+      await this.embeddingService.embedChunks(documentId);
+
+      this.sseService.emit(userId, {
+        id: randomUUID(),
+        taskType: 'document_vectorize',
+        taskId: documentId,
+        status: 'done',
+        message: `向量化完成，共 ${chunkCount} 个分块`,
+        metadata: { chunkCount },
+        createdAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : '文档向量化失败';
+
+      this.sseService.emit(userId, {
+        id: randomUUID(),
+        taskType: 'document_vectorize',
+        taskId: documentId,
+        status: 'error',
+        message,
+        createdAt: new Date().toISOString(),
       });
       throw error;
     }
